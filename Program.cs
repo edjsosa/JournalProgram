@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -7,6 +8,10 @@ class Program
 {
     static void Main(string[] args)
     {
+        int DELAY = 1000;
+
+        string filename = "";
+
         FileManager fileManager = new FileManager();
         Journal journal = new Journal();
 
@@ -23,10 +28,13 @@ class Program
                     string prompt = UserInterface.GetRandomPrompt();
                     string response = UserInterface.GetEntryResponse(prompt);
                     journal.AddEntry(new Entry(prompt, response));
+                    UserInterface.DisplayMessage("Entry saved to journal.");
+                    Thread.Sleep(DELAY);
                     break;
 
                 case "2":
                     UserInterface.DisplayJournal(journal);
+                    Thread.Sleep(DELAY);
                     break;
 
                 case "3":
@@ -35,30 +43,42 @@ class Program
 
                     Journal dateSearch = new Journal(journal.FindEntriesByDateRange(start, end));
                     UserInterface.DisplayJournal(dateSearch);
+                    Thread.Sleep(DELAY);
                     break;
 
                 case "4":
                     string keyword = UserInterface.GetKeyword();
                     Journal keywordSearch = new Journal(journal.FindEntriesByKeyword(keyword));
                     UserInterface.DisplayJournal(keywordSearch);
+                    Thread.Sleep(DELAY);
                     break;
 
                 case "5":
-                    string filename = UserInterface.GetFileName();
+                    filename = UserInterface.GetFileName();
                     FileManager.SaveJournalToFile(journal, filename);
+                    Thread.Sleep(DELAY);
                     break;
 
                 case "6":
-                    string loadFilename = UserInterface.GetFileName();
-                    journal = FileManager.LoadJournalFromFile(loadFilename);
+                    filename = UserInterface.GetFileName();
+                    journal = FileManager.LoadJournalFromFile(filename);
+                    Thread.Sleep(DELAY);
                     break;
 
                 case "7":
                     running = false;
+
+                    if (UserInterface.PromptSaveChanges())
+                    {
+                        filename = UserInterface.GetFileName();
+                        FileManager.SaveJournalToFile(journal, filename);
+                    }
+                    UserInterface.DisplayMessage("Thank you!");
                     break;
 
                 default:
-                    UserInterface.DisplayErrorMessage("Invalid input, please try again.");
+                    UserInterface.DisplayMessage("Invalid input, please try again.");
+                    Thread.Sleep(DELAY);
                     break;
             }
         }
@@ -68,16 +88,30 @@ class Program
 
 class UserInterface
 {
+
+    enum YesOrNo { N = 0, NO = 0, Y = 1, YES = 1};
+
     public static void DisplayMainMenu()
     {
+
+        int DELAY = 50;
+
         Console.WriteLine("\nJournal App");
+        Thread.Sleep(DELAY);
         Console.WriteLine("===========");
+        Thread.Sleep(DELAY);
         Console.WriteLine("1. Write a new journal entry");
+        Thread.Sleep(DELAY);
         Console.WriteLine("2. Display all journal entries");
+        Thread.Sleep(DELAY);
         Console.WriteLine("3. Search for entries by date range");
+        Thread.Sleep(DELAY);
         Console.WriteLine("4. Search for entries by keyword");
+        Thread.Sleep(DELAY);
         Console.WriteLine("5. Save journal to a file");
+        Thread.Sleep(DELAY);
         Console.WriteLine("6. Load journal from a file");
+        Thread.Sleep(DELAY);
         Console.WriteLine("7. Exit\n");
     }
 
@@ -149,9 +183,9 @@ class UserInterface
         return fileName;
     }
 
-    public static void DisplayErrorMessage(string errorMessage)
+    public static void DisplayMessage(string message)
     {
-        Console.WriteLine(errorMessage);
+        Console.WriteLine(message);
     }
 
     public static string GetRandomPrompt()
@@ -225,7 +259,7 @@ class UserInterface
             }
             catch (FormatException)
             {
-                Console.WriteLine($"Invalid date format. Please enter a date in the correct format.");
+                Console.WriteLine($"Invalid date format. Enter MM/DD/YYY (e.g. 01/01/1999).");
             }
             catch (Exception ex)
             {
@@ -234,6 +268,33 @@ class UserInterface
         }
 
         return date;
+    }
+
+    public static bool PromptSaveChanges()
+    { 
+        Console.WriteLine("Do you want to save your changes? ");
+        Console.Write("Yes or No: ");
+        string userInput = Console.ReadLine().ToLower();
+
+        bool isUserInputValid = false;
+        while (!isUserInputValid)
+        {
+            if (userInput == "yes")
+            {
+                return true;
+            }
+            else if (userInput == "no")
+            {
+                return false;
+            }
+            else
+            {
+                Console.WriteLine("Invalid input. Please enter Yes or No.");
+                Console.Write("Yes or No: ");
+                userInput = Console.ReadLine().ToLower();
+            }
+        }
+        return false;
     }
 }
 

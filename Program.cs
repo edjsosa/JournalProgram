@@ -88,9 +88,6 @@ class Program
 
 class UserInterface
 {
-
-    enum YesOrNo { N = 0, NO = 0, Y = 1, YES = 1};
-
     public static void DisplayMainMenu()
     {
 
